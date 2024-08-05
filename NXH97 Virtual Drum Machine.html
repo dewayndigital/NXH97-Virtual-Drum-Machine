@@ -1,0 +1,776 @@
+<html><head><base href="NXH97 Virtual Drum Machine" /><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>NXH97 Virtual Drum Machine Simulator</title><style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+body {
+    font-family: 'Press Start 2P', cursive;
+    background-color: #000;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    width: 100vw;
+    margin: 0;
+    overflow: hidden;
+}
+
+.app-container {
+    width: 300px;
+    height: 300px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.title-container {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.title {
+    color: #ff9900;
+    font-size: 12px;
+    font-weight: bold;
+    text-shadow: 0 0 5px #ff9900;
+    position: relative;
+    animation: glitch 2s infinite;
+    display: inline-block;
+}
+
+@keyframes glitch {
+    0% {
+        text-shadow: 0.025em 0 0 #ff9900, -0.025em -0.0125em 0 #ff6600,
+            0.0125em 0.025em 0 #ffcc00;
+    }
+    14% {
+        text-shadow: 0.025em 0 0 #ff9900, -0.025em -0.0125em 0 #ff6600,
+            0.0125em 0.025em 0 #ffcc00;
+    }
+    15% {
+        text-shadow: -0.025em -0.0125em 0 #ff9900, 0.0125em 0.0125em 0 #ff6600,
+            -0.025em -0.025em 0 #ffcc00;
+    }
+    49% {
+        text-shadow: -0.025em -0.0125em 0 #ff9900, 0.0125em 0.0125em 0 #ff6600,
+            -0.025em -0.025em 0 #ffcc00;
+    }
+    50% {
+        text-shadow: 0.0125em 0.025em 0 #ff9900, 0.025em 0 0 #ff6600,
+            0 -0.025em 0 #ffcc00;
+    }
+    99% {
+        text-shadow: 0.0125em 0.025em 0 #ff9900, 0.025em 0 0 #ff6600,
+            0 -0.025em 0 #ffcc00;
+    }
+    100% {
+        text-shadow: -0.0125em 0 0 #ff9900, -0.0125em -0.0125em 0 #ff6600,
+            -0.0125em -0.025em 0 #ffcc00;
+    }
+}
+
+.title::before,
+.title::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.title::before {
+    left: 1px;
+    text-shadow: -0.5px 0 #ff6600;
+    animation: glitch-2 3s infinite linear alternate-reverse;
+}
+
+.title::after {
+    left: -1px;
+    text-shadow: -0.5px 0 #ffcc00;
+    animation: glitch-1 2.5s infinite linear alternate-reverse;
+}
+
+@keyframes glitch-1 {
+    0% {
+        clip: rect(66px, auto, 50px, 15px);
+    }
+    100% {
+        clip: rect(7px, auto, 50px, 15px);
+    }
+}
+
+@keyframes glitch-2 {
+    0% {
+        clip: rect(64px, auto, 18px, 15px);
+    }
+    100% {
+        clip: rect(41px, auto, 20px, 15px);
+    }
+}
+
+.matrix-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 300px;
+    height: 300px;
+    z-index: -1;
+}
+
+.matrix-column {
+    position: absolute;
+    top: -50px;
+    width: 10px;
+    color: #ff9900;
+    font-size: 8px;
+    text-align: center;
+    animation: fall linear infinite;
+}
+
+@keyframes fall {
+    to {
+        transform: translateY(300px);
+    }
+}
+
+.nxh97 {
+    width: 260px;
+    height: 220px;
+    background-color: rgba(51, 51, 51, 0.8);
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    padding: 5px;
+    box-shadow: 0 2px 7px rgba(255,153,0,0.2);
+    transform: perspective(250px) rotateX(5deg);
+    position: relative;
+    border: 1px solid #ff9900;
+}
+
+.pads {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-gap: 3px;
+    flex-grow: 1;
+}
+
+.pad {
+    background-color: #333;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.1s;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(255,153,0,0.3);
+    border: 1px solid #ff9900;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 8px;
+    color: #ff9900;
+}
+
+.pad:active, .pad.active {
+    background-color: #ff9900;
+    transform: scale(0.98);
+    box-shadow: 0 0px 1px rgba(255,153,0,0.3);
+    color: #000;
+}
+
+.pad::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle, transparent 30%, rgba(255,153,0,0.1) 70%);
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.pad:active::after, .pad.active::after {
+    opacity: 1;
+}
+
+.controls {
+    height: 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.screen {
+    background-color: #ff9900;
+    height: 20px;
+    border-radius: 2px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #000;
+    font-size: 8px;
+    text-align: center;
+    padding: 1px;
+    font-family: 'Press Start 2P', cursive;
+    box-shadow: inset 0 0 2px rgba(0,0,0,0.3);
+    margin-bottom: 3px;
+    position: relative;
+    overflow: hidden;
+}
+
+.buttons {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-gap: 3px;
+}
+
+.button {
+    background-color: #ff9900;
+    color: #000;
+    border: none;
+    padding: 3px;
+    border-radius: 2px;
+    cursor: pointer;
+    font-size: 6px;
+    transition: all 0.2s;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    font-family: 'Press Start 2P', cursive;
+}
+
+.button:active {
+    background-color: #ffaa33;
+    transform: translateY(1px);
+    box-shadow: 0 0px 1px rgba(0,0,0,0.1);
+}
+
+.knobs {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 3px;
+}
+
+.knob {
+    width: 15px;
+    height: 15px;
+    background-color: #ff9900;
+    border-radius: 50%;
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+.knob::after {
+    content: '';
+    position: absolute;
+    width: 1px;
+    height: 5px;
+    background-color: #000;
+    top: 1px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.led {
+    width: 2px;
+    height: 2px;
+    background-color: #ff9900;
+    border-radius: 50%;
+    position: absolute;
+    top: 1px;
+    left: 1px;
+    opacity: 0.3;
+    transition: opacity 0.2s;
+}
+
+.led.active {
+    opacity: 1;
+}
+
+.knob-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.knob-label {
+    font-size: 5px;
+    margin-top: 1px;
+    color: #ff9900;
+}
+
+.loop-button {
+    width: 15px;
+    height: 15px;
+    background-color: #ff9900;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+.loop-button:active {
+    background-color: #ffaa33;
+    transform: scale(0.95);
+    box-shadow: 0 0px 1px rgba(0,0,0,0.3);
+}
+
+.loop-button-inner {
+    width: 9px;
+    height: 9px;
+    background-color: #000;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.loop-button.active .loop-button-inner {
+    background-color: #ff9900;
+}
+
+.tabs {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
+    align-items: center;
+}
+
+.tab {
+    background-color: #ff9900;
+    color: #000;
+    border: none;
+    padding: 3px 5px;
+    border-radius: 2px;
+    cursor: pointer;
+    font-size: 6px;
+    transition: all 0.2s;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    font-family: 'Press Start 2P', cursive;
+}
+
+.tab:active, .tab.active {
+    background-color: #ffaa33;
+    transform: translateY(1px);
+    box-shadow: 0 0px 1px rgba(0,0,0,0.1);
+}
+
+.tab.recording {
+    background-color: #a00;
+}
+
+.tab.recording.active {
+    background-color: #f00;
+}
+
+.tab.play-pause.playing {
+    background-color: #0a0;
+}
+
+.wave-visualizer {
+    width: 30px;
+    height: 15px;
+    background-color: #222;
+    border-radius: 2px;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-end;
+    padding: 1px;
+    box-sizing: border-box;
+}
+
+.wave-bar {
+    width: 1px;
+    background-color: #ff9900;
+    margin-right: 1px;
+    transition: height 0.1s ease;
+}
+
+.import-tab {
+    background-color: #ff9900;
+    color: #000;
+    border: none;
+    padding: 3px 5px;
+    border-radius: 2px;
+    cursor: pointer;
+    font-size: 6px;
+    transition: all 0.2s;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    font-family: 'Press Start 2P', cursive;
+}
+
+.import-tab:active, .import-tab.active {
+    background-color: #ffaa33;
+    transform: translateY(1px);
+    box-shadow: 0 0px 1px rgba(0,0,0,0.1);
+}
+
+.import-input {
+    display: none;
+}
+
+.nxh4l-effect {
+    position: absolute;
+    bottom: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Press Start 2P', cursive;
+    font-size: 12px;
+    font-weight: bold;
+    color: #ff9900;
+    text-shadow: 0 0 5px #ff9900;
+    opacity: 0.7;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 0.7;
+        transform: translateX(-50%) scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: translateX(-50%) scale(1.1);
+    }
+    100% {
+        opacity: 0.7;
+        transform: translateX(-50%) scale(1);
+    }
+}
+</style></head><body>
+<div class="app-container">
+    <div class="title-container">
+        <div class="title" data-text="NXH97 Virtual Drum Machine">NXH97 Virtual Drum Machine</div>
+    </div>
+    <div class="matrix-container" id="matrixContainer"></div>
+    <div class="nxh97">
+        <div class="pads">
+            <div class="pad" id="pad1"><div class="led"></div>A</div>
+            <div class="pad" id="pad2"><div class="led"></div>B</div>
+            <div class="pad" id="pad3"><div class="led"></div>C</div>
+            <div class="pad" id="pad4"><div class="led"></div>D</div>
+            <div class="pad" id="pad5"><div class="led"></div>E</div>
+            <div class="pad" id="pad6"><div class="led"></div>F</div>
+            <div class="pad" id="pad7"><div class="led"></div>G</div>
+            <div class="pad" id="pad8"><div class="led"></div>H</div>
+        </div>
+        <div class="controls">
+            <div class="screen" id="screen">NXH97</div>
+            <div class="buttons">
+                <button class="button" id="kitButton">KIT</button>
+                <button class="button" id="menuButton">MENU</button>
+                <button class="button" id="fxCtrlButton">FX</button>
+                <button class="button" id="leftButton">◀</button>
+                <button class="button" id="enterButton">OK</button>
+                <button class="button" id="rightButton">▶</button>
+            </div>
+            <div class="knobs">
+                <div class="knob-group">
+                    <div class="knob" id="volumeKnob"></div>
+                    <div class="knob-label">VOL</div>
+                </div>
+                <div class="knob-group">
+                    <div class="loop-button" id="loopButton">
+                        <div class="loop-button-inner"></div>
+                    </div>
+                    <div class="knob-label">LOOP</div>
+                </div>
+                <div class="knob-group">
+                    <div class="knob" id="delayKnob"></div>
+                    <div class="knob-label">DEL</div>
+                </div>
+                <div class="knob-group">
+                    <div class="knob" id="reverbKnob"></div>
+                    <div class="knob-label">REV</div>
+                </div>
+            </div>
+        </div>
+        <div class="tabs">
+            <button class="tab recording" id="recordingTab">REC</button>
+            <div class="wave-visualizer" id="waveVisualizer">
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+                <div class="wave-bar"></div>
+            </div>
+            <button class="tab play-pause" id="playPauseTab">PLAY</button>
+            <button class="import-tab" id="importTab">IMP</button>
+            <input type="file" id="importInput" class="import-input" accept="audio/*">
+            <button class="tab" id="stopTab">STOP</button>
+        </div>
+        <div class="nxh4l-effect">NXH4L</div>
+    </div>
+</div>
+
+<script>
+const pads = document.querySelectorAll('.pad');
+const screen = document.getElementById('screen');
+const volumeKnob = document.getElementById('volumeKnob');
+const loopButton = document.getElementById('loopButton');
+const delayKnob = document.getElementById('delayKnob');
+const reverbKnob = document.getElementById('reverbKnob');
+const kitButton = document.getElementById('kitButton');
+const menuButton = document.getElementById('menuButton');
+const fxCtrlButton = document.getElementById('fxCtrlButton');
+const leftButton = document.getElementById('leftButton');
+const rightButton = document.getElementById('rightButton');
+const enterButton = document.getElementById('enterButton');
+const recordingTab = document.getElementById('recordingTab');
+const playPauseTab = document.getElementById('playPauseTab');
+const stopTab = document.getElementById('stopTab');
+const waveVisualizer = document.getElementById('waveVisualizer');
+const waveBars = waveVisualizer.querySelectorAll('.wave-bar');
+const importTab = document.getElementById('importTab');
+const importInput = document.getElementById('importInput');
+const matrixContainer = document.getElementById('matrixContainer');
+
+let volume = 5;
+let isLooping = false;
+let delayLevel = 5;
+let reverbLevel = 5;
+let currentKit = 0;
+const kits = ['NXH97 Virtual', 'NXH97 Digital', 'NXH97 Electro', 'NXH97 Acoustic', 'NXH97 Synth'];
+
+const sounds = [
+    'A', 'B', 'C', 'D',
+    'E', 'F', 'G', 'H'
+];
+
+let isRecording = false;
+let isPlaying = false;
+let selectedPad = null;
+
+// Google Fonts Sound
+const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+const sounds_url = 'https://fonts.googleapis.com/earlyaccess/sound/';
+const audioBuffers = {};
+
+async function loadSound(sound) {
+    const response = await fetch(`${sounds_url}${sound}.mp3`);
+    const arrayBuffer = await response.arrayBuffer();
+    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+    audioBuffers[sound] = audioBuffer;
+}
+
+async function loadAllSounds() {
+    const loadPromises = sounds.map(sound => loadSound(sound));
+    await Promise.all(loadPromises);
+}
+
+function playSound(sound) {
+    const source = audioContext.createBufferSource();
+    source.buffer = audioBuffers[sound];
+    source.connect(audioContext.destination);
+    source.start();
+}
+
+loadAllSounds();
+
+function updateScreen(text) {
+    screen.textContent = text;
+    setTimeout(() => {
+        screen.textContent = `${kits[currentKit]} V:${Math.round(volume * 10)} L:${isLooping ? 'ON' : 'OFF'} D:${Math.round(delayLevel * 10)}`;
+    }, 1000);
+}
+
+pads.forEach((pad, index) => {
+    pad.addEventListener('click', () => {
+        pad.classList.add('active');
+        pad.querySelector('.led').classList.add('active');
+        updateScreen(`${sounds[index]}`);
+        playSound(sounds[index]);
+        updateWaveVisualizer();
+        selectedPad = pad;
+        setTimeout(() => {
+            pad.classList.remove('active');
+            pad.querySelector('.led').classList.remove('active');
+        }, 200);
+    });
+});
+
+let isDragging = false;
+let startY;
+
+function handleKnobDrag(knob, value, updateFunction) {
+    knob.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        startY = e.clientY;
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (isDragging) {
+            const deltaY = startY - e.clientY;
+            value = Math.max(0, Math.min(10, value + deltaY / 10));
+            knob.style.transform = `rotate(${value * 30 - 150}deg)`;
+            updateFunction(value);
+            startY = e.clientY;
+        }
+    });
+
+    document.addEventListener('mouseup', () => {
+        isDragging = false;
+    });
+}
+
+handleKnobDrag(volumeKnob, volume, (newVolume) => {
+    volume = newVolume;
+    updateScreen(`Volume: ${Math.round(volume * 10)}`);
+});
+
+loopButton.addEventListener('click', () => {
+    isLooping = !isLooping;
+    loopButton.classList.toggle('active', isLooping);
+    updateScreen(`Loop: ${isLooping ? 'ON' : 'OFF'}`);
+});
+
+handleKnobDrag(delayKnob, delayLevel, (newDelayLevel) => {
+    delayLevel = newDelayLevel;
+    updateScreen(`Delay: ${Math.round(delayLevel * 10)}`);
+});
+
+handleKnobDrag(reverbKnob, reverbLevel, (newReverbLevel) => {
+    reverbLevel = newReverbLevel;
+    updateScreen(`Reverb: ${Math.round(reverbLevel * 10)}`);
+});
+
+kitButton.addEventListener('click', () => {
+    currentKit = (currentKit + 1) % kits.length;
+    updateScreen(`Kit: ${kits[currentKit]}`);
+});
+
+menuButton.addEventListener('click', () => {
+    updateScreen('Menu');
+});
+
+fxCtrlButton.addEventListener('click', () => {
+    updateScreen('FX Ctrl');
+});
+
+leftButton.addEventListener('click', () => {
+    updateScreen('◀');
+});
+
+rightButton.addEventListener('click', () => {
+    updateScreen('▶');
+});
+
+enterButton.addEventListener('click', () => {
+    updateScreen('OK');
+});
+
+recordingTab.addEventListener('click', () => {
+    isRecording = !isRecording;
+    recordingTab.classList.toggle('active', isRecording);
+    updateScreen(`Recording: ${isRecording ? 'ON' : 'OFF'}`);
+});
+
+playPauseTab.addEventListener('click', () => {
+    isPlaying = !isPlaying;
+    playPauseTab.classList.toggle('playing', isPlaying);
+    playPauseTab.textContent = isPlaying ? 'PAUSE' : 'PLAY';
+    updateScreen(`${isPlaying ? 'Playing' : 'Paused'}`);
+    if (isPlaying) {
+        animateWaveVisualizer();
+    }
+});
+
+stopTab.addEventListener('click', () => {
+    isPlaying = false;
+    playPauseTab.classList.remove('playing');
+    playPauseTab.textContent = 'PLAY';
+    updateScreen('Stopped');
+    resetWaveVisualizer();
+});
+
+importTab.addEventListener('click', () => {
+    if (selectedPad) {
+        importInput.click();
+    } else {
+        updateScreen('Select a pad first');
+    }
+});
+
+importInput.addEventListener('change', (event) => {
+    const file = event.target.files[0];
+    if (file && selectedPad) {
+        // Here you would typically process the audio file
+        // For this simulation, we'll just update the screen
+        updateScreen(`Imported: ${file.name}`);
+        selectedPad.style.backgroundColor = '#ff9900'; // Change pad color to indicate imported sound
+    }
+});
+
+const keyMap = {
+    '1': 0, '2': 1, '3': 2, '4': 3,
+    'q': 4, 'w': 5, 'e': 6, 'r': 7
+};
+
+document.addEventListener('keydown', (e) => {
+    const padIndex = keyMap[e.key];
+    if (padIndex !== undefined) {
+        pads[padIndex].click();
+    }
+});
+
+function updateWaveVisualizer() {
+    waveBars.forEach(bar => {
+        const height = Math.random() * 13 + 2;
+        bar.style.height = `${height}px`;
+    });
+}
+
+function resetWaveVisualizer() {
+    waveBars.forEach(bar => {
+        bar.style.height = '2px';
+    });
+}
+
+function animateWaveVisualizer() {
+    if (isPlaying) {
+        updateWaveVisualizer();
+        requestAnimationFrame(animateWaveVisualizer);
+    } else {
+        resetWaveVisualizer();
+    }
+}
+
+// Matrix effect
+const matrixChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()_+';
+const columnCount = Math.floor(300 / 10);
+
+function createMatrixColumn() {
+    const column = document.createElement('div');
+    column.className = 'matrix-column';
+    column.style.left = `${Math.random() * 100}%`;
+    column.style.animationDuration = `${Math.random() * 5 + 5}s`;
+    
+    for (let i = 0; i < 20; i++) {
+        const char = document.createElement('div');
+        char.textContent = matrixChars[Math.floor(Math.random() * matrixChars.length)];
+        column.appendChild(char);
+    }
+    
+    matrixContainer.appendChild(column);
+    
+    setTimeout(() => {
+        matrixContainer.removeChild(column);
+        createMatrixColumn();
+    }, (parseFloat(column.style.animationDuration) * 1000));
+}
+
+for (let i = 0; i < columnCount; i++) {
+    setTimeout(createMatrixColumn, i * 100);
+}
+
+updateScreen(`${kits[currentKit]} V:${Math.round(volume * 10)} L:${isLooping ? 'ON' : 'OFF'} D:${Math.round(delayLevel * 10)}`);
+</script>
+</body></html>
