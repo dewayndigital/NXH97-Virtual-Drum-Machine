@@ -1,4 +1,4 @@
-9-pad virtual instrument that allows users to play drum sounds by interacting with the pads. Here's a summary of its features and functionality:
+BTCVDM-NXH97 9-pad virtual instrument that allows users to play drum sounds by interacting with the pads. Here's a summary of its features and functionality:
 
 9 Pads Layout: The drumpad consists of 9 individual pads, each representing a different drum sound.
 
